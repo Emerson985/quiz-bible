@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qui Veut Gagner Des Millions - Bible</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <section id="generique-overlay" class="generique-overlay" aria-live="polite">
+        <div class="generique-panel">
+            <img src="assets/logo.png" alt="Logo" class="generique-logo">
+            <p class="generique-kicker">Emission Speciale</p>
+            <h2 id="generique-line">Qui Veut Gagner Des Millions</h2>
+            <p id="generique-subline">Edition Biblique</p>
+            <button id="generique-skip">Passer</button>
+        </div>
+    </section>
+
+    <section id="game-over-banner" class="game-over-banner" aria-live="assertive">
+        <strong>GAME OVER</strong>
+        <span>Vous avez perdu cette manche.</span>
+    </section>
+
+    <div id="new-game-overlay" class="new-game-overlay">
+        <div class="new-game-card">
+            <h2 class="ng-title">GAME OVER</h2>
+            <p class="ng-fallback-label">Vous repartez avec</p>
+            <p class="ng-fallback-amount" id="ng-fallback-amount">$0</p>
+            <button id="ng-restart-btn" class="ng-restart-btn">Nouvelle Partie</button>
+        </div>
+    </div>
+
+    <section id="gain-win-banner" class="gain-win-banner" aria-live="polite">
+        <strong id="gain-win-title">Bonne réponse !</strong>
+        <span id="gain-win-amount">+$0</span>
+    </section>
+
+    <main class="studio">
+        <section class="left-stage">
+            <header class="show-header">
+                <img src="assets/logo.png" alt="Logo" class="logo">
+                <div>
+                    <p class="kicker">Spécial Bible</p>
+                    <h1>Qui Veut Gagner Des Millions</h1>
+                </div>
+            </header>
+
+            <div class="controls">
+                <label for="testament-select">Portion</label>
+                <select id="testament-select">
+                    <option value="all">Toute la Bible</option>
+                    <option value="old">Ancien Testament</option>
+                    <option value="new">Nouveau Testament</option>
+                </select>
+
+                <label for="sound-toggle" class="sound-wrap">
+                    <input id="sound-toggle" type="checkbox" checked>
+                    <span>Sons</span>
+                </label>
+
+                <button id="start-game" class="start-btn">Commencer</button>
+                <button id="take-money" class="take-btn">Encaisser</button>
+                <button id="replay-generique" class="take-btn" aria-label="Rejouer le generique" title="Rejouer le generique">&#9654;</button>
+            </div>
+
+            <p class="gain-inline">Gain actuel: <strong id="current-gain">$0</strong></p>
+
+            <section class="lifelines">
+                <button id="lifeline-5050">50:50</button>
+                <button id="lifeline-phone">Appel</button>
+                <button id="lifeline-audience">Public</button>
+            </section>
+
+            <section class="question-panel">
+                <p id="round-label">Question 1</p>
+                <blockquote id="verse-hint"></blockquote>
+                <h2 id="question-text">Appuyez sur Commencer pour jouer.</h2>
+            </section>
+
+            <section class="answers-grid">
+                <button class="answer" id="answer-0"><span>A</span><strong>...</strong></button>
+                <button class="answer" id="answer-1"><span>B</span><strong>...</strong></button>
+                <button class="answer" id="answer-2"><span>C</span><strong>...</strong></button>
+                <button class="answer" id="answer-3"><span>D</span><strong>...</strong></button>
+            </section>
+
+            <p id="host-message">Base locale chargée: <strong id="verse-count">0</strong> versets.</p>
+        </section>
+    </main>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

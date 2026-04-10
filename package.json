@@ -1,0 +1,49 @@
+{
+  "name": "quiz-bible",
+  "version": "1.1.0",
+  "description": "Quiz biblique Electron avec toute la Bible Louis Segond 1910 en local.",
+  "main": "main.js",
+  "author": "HP",
+  "scripts": {
+    "start": "electron .",
+    "start:web": "http-server . -c-1 -p 8080",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis",
+    "dist:zip": "powershell -NoProfile -Command \"if (Test-Path 'release\\Quiz-Biblique-win.zip') { Remove-Item 'release\\Quiz-Biblique-win.zip' -Force }; Compress-Archive -Path 'release\\win-unpacked\\*' -DestinationPath 'release\\Quiz-Biblique-win.zip' -Force\"",
+    "web:zip": "powershell -NoProfile -Command \"if (-not (Test-Path 'release')) { New-Item -ItemType Directory -Path 'release' | Out-Null }; if (Test-Path 'release\\Quiz-Biblique-web.zip') { Remove-Item 'release\\Quiz-Biblique-web.zip' -Force }; Compress-Archive -Path 'index.html','style.css','renderer.js','assets\\logo.png','assets\\logo.svg','data\\segond_1910.json' -DestinationPath 'release\\Quiz-Biblique-web.zip' -Force\""
+  },
+  "build": {
+    "appId": "com.hp.quizbible",
+    "productName": "Quiz Biblique",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "index.html",
+      "main.js",
+      "renderer.js",
+      "style.css",
+      "assets/**/*",
+      "data/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "assets/logo.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^25.0.0",
+    "electron-builder": "^24.13.3",
+    "http-server": "^14.1.1"
+  }
+}
+  
