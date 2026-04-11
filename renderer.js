@@ -340,7 +340,6 @@ async function buildOnlineAIQuestion() {
         return null;
     }
     if (!state.aiConfig.apiKey) {
-        updateStatusMessage("IA en ligne cochee mais aucune cle API configuree. Configure l'IA via le bouton \"Configurer IA\".");
         return null;
     }
 
@@ -1206,9 +1205,9 @@ function registerEvents() {
         state.aiConfig.enabled = onlineAIToggle.checked;
         saveAIConfig();
         if (state.aiConfig.enabled) {
-            updateStatusMessage("IA en ligne active. En cas d'echec API, le moteur local prend le relais.");
+            updateStatusMessage("Mode IA en ligne active.");
         } else {
-            updateStatusMessage("IA en ligne desactivee. Moteur local actif.");
+            updateStatusMessage("Mode IA local actif.");
         }
     });
 
@@ -1230,10 +1229,10 @@ async function init() {
         hideGameOverBanner();
         loadAIConfig();
         updateAIControls();
+        registerEvents();
         const bible = await loadData();
         state.verses = bible.verses;
         verseCount.innerText = state.verses.length.toLocaleString("fr-FR");
-        registerEvents();
         renderScore();
         updateLifelineButtons();
         if (state.aiConfig.enabled && state.aiConfig.apiKey) {
