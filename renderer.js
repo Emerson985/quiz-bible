@@ -1,4 +1,5 @@
-const SERIE_TARGET = 5;
+
+ const SERIE_TARGET = 5;
 const POINTS_PER_SERIE = 100;
 const WIN_SCORE = 1000;
 const AI_STORAGE_KEY = "quiz-bible-ai-config";
@@ -7,8 +8,8 @@ const AI_REQUEST_TIMEOUT_MS = 9000;
 const DEFAULT_AI_CONFIG = {
     enabled: false,
     apiKey: "",
-    model: "gpt-4o-mini",
-    endpoint: "https://api.openai.com/v1/chat/completions"
+    model: "gemini-2.0-flash",
+    endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
 };
 
 const DIFFICULTY_CONFIG = {
@@ -324,9 +325,9 @@ function loadAIConfig() {
         // Ignore invalid local storage payload.
     }
 
-    const envApiKey = getEnvVar("OPENAI_API_KEY");
-    const envModel = getEnvVar("OPENAI_MODEL");
-    const envEndpoint = getEnvVar("OPENAI_ENDPOINT");
+    const envApiKey = getEnvVar("GEMINI_API_KEY") || getEnvVar("OPENAI_API_KEY");
+    const envModel = getEnvVar("GEMINI_MODEL") || getEnvVar("OPENAI_MODEL");
+    const envEndpoint = getEnvVar("GEMINI_ENDPOINT") || getEnvVar("OPENAI_ENDPOINT");
 
     if (!config.apiKey && envApiKey) {
         config.apiKey = envApiKey.trim();
@@ -891,7 +892,7 @@ function buildReferenceQuestion() {
     const options = shuffle([correct, ...wrongSet]);
 
     return {
-        prompt: `Quelle est la reference de ce verset dans ${verse.book_name} ?`,
+        prompt: `Quelle est la reference biblique de ce verset dans ${verse.book_name} ?`,
         verseHint: verse.text,
         options,
         correctIndex: options.indexOf(correct)
@@ -973,7 +974,7 @@ function buildVerseNumberQuestion() {
 
     const options = shuffle([correct, ...wrong]);
     return {
-        prompt: `Quel est le numero du verset dans ${verse.book_name} ${verse.chapter} ?`,
+        prompt: `Quel est le numero de ce verset dans ${verse.book_name} ${verse.chapter} ?`,
         verseHint: truncateVerse(verse.text, 220),
         options,
         correctIndex: options.indexOf(correct)
@@ -1029,7 +1030,7 @@ function buildEventQuestion() {
         const wrong = shuffle(candidates.filter((item) => item.who !== selected.who).map((item) => item.who)).slice(0, 3);
         const options = shuffle([selected.who, ...wrong]);
         return {
-            prompt: `Qui est associe a ${selected.event} ?`,
+            prompt: `Qui est associe a l'evenement suivant: ${selected.event} ?`,
             verseHint: "Question IA basee sur les recits bibliques.",
             options,
             correctIndex: options.indexOf(selected.who)
@@ -1039,7 +1040,7 @@ function buildEventQuestion() {
     const wrong = shuffle(candidates.filter((item) => item.where !== selected.where).map((item) => item.where)).slice(0, 3);
     const options = shuffle([selected.where, ...wrong]);
     return {
-        prompt: `Ou se situe principalement ${selected.event} ?`,
+        prompt: `Ou se deroule principalement ${selected.event} ?`,
         verseHint: "Question IA basee sur les recits bibliques.",
         options,
         correctIndex: options.indexOf(selected.where)
@@ -1173,6 +1174,25 @@ function buildLocalQuestion() {
 }
 
 async function buildQuestion() {
+    if (state.aiConfig?.enabled) {
+        const history = getDifficultyQuestionHistory(state.difficulty);
+
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+            const onlineQuestion = await buildOnlineAIQuestion();
+            if (!onlineQuestion || !isQuestionShapeValid(onlineQuestion)) {
+                continue;
+            }
+
+            const signature = buildQuestionSignature(onlineQuestion);
+            if (history.has(signature)) {
+                continue;
+            }
+
+            history.add(signature);
+            return onlineQuestion;
+        }
+    }
+
     return buildLocalQuestion();
 }
 
@@ -1465,6 +1485,60 @@ function takeMoney() {
     showNewGameOverlay(state.score);
 }
 
+function normalizeBibleDataset(rawBible) {
+    const sourceVerses = Array.isArray(rawBible?.verses) ? rawBible.verses : [];
+    const cleaned = [];
+    const seen = new Set();
+    let dropped = 0;
+
+    for (const verse of sourceVerses) {
+        if (!verse || typeof verse !== "object") {
+            dropped += 1;
+            continue;
+        }
+
+        const book = Number(verse.book);
+        const chapter = Number(verse.chapter);
+        const verseNum = Number(verse.verse);
+        const text = String(verse.text || "").trim();
+        const bookName = String(verse.book_name || "").trim();
+
+        if (!Number.isFinite(book) || !Number.isFinite(chapter) || !Number.isFinite(verseNum)) {
+            dropped += 1;
+            continue;
+        }
+
+        if (!text || !bookName) {
+            dropped += 1;
+            continue;
+        }
+
+        const normalizedVerse = {
+            ...verse,
+            book,
+            chapter,
+            verse: verseNum,
+            text,
+            book_name: bookName
+        };
+
+        // Deduplicate on canonical biblical reference + exact text.
+        const signature = `${book}|${chapter}|${verseNum}|${normaliserTexte(text)}`;
+        if (seen.has(signature)) {
+            dropped += 1;
+            continue;
+        }
+
+        seen.add(signature);
+        cleaned.push(normalizedVerse);
+    }
+
+    return {
+        verses: cleaned,
+        dropped
+    };
+}
+
 async function loadData() {
     if (typeof require === "function") {
         try {
@@ -1544,11 +1618,17 @@ function registerEvents() {
     replayGeneriqueButton.addEventListener("click", lancerGenerique);
 
     onlineAIToggle.addEventListener("change", () => {
-        state.localAIEnabled = onlineAIToggle.checked;
-        if (state.localAIEnabled) {
-            updateStatusMessage("Mode IA local actif.");
+        state.aiConfig.enabled = onlineAIToggle.checked;
+        saveAIConfig();
+
+        if (state.aiConfig.enabled) {
+            if (state.aiConfig.apiKey) {
+                updateStatusMessage(`Mode IA en ligne actif (${state.aiConfig.model}).`);
+            } else {
+                updateStatusMessage("Mode IA en ligne active, mais aucune cle API detectee. Fallback local actif.");
+            }
         } else {
-            updateStatusMessage("Mode classique actif.");
+            updateStatusMessage("Mode IA local actif.");
         }
     });
 
@@ -1568,16 +1648,24 @@ function registerEvents() {
 async function init() {
     try {
         hideGameOverBanner();
-        if (onlineAIToggle) {
-            onlineAIToggle.checked = state.localAIEnabled;
-        }
+        loadAIConfig();
+        updateAIControls();
         registerEvents();
         const bible = await loadData();
-        state.verses = bible.verses;
+        const normalized = normalizeBibleDataset(bible);
+        state.verses = normalized.verses;
         verseCount.innerText = state.verses.length.toLocaleString("fr-FR");
         renderScore();
         updateLifelineButtons();
-        updateStatusMessage("Base locale chargee. Mode IA local actif.");
+        if (normalized.dropped > 0) {
+            updateStatusMessage(`Base locale chargee avec nettoyage: ${normalized.dropped} entree(s) invalide(s) retiree(s).`);
+        } else if (state.aiConfig.enabled && state.aiConfig.apiKey) {
+            updateStatusMessage(`Base locale chargee. Mode IA en ligne actif (${state.aiConfig.model}).`);
+        } else if (state.aiConfig.enabled && !state.aiConfig.apiKey) {
+            updateStatusMessage("Base locale chargee. IA en ligne active sans cle API, fallback local actif.");
+        } else {
+            updateStatusMessage("Base locale chargee. Mode IA local actif.");
+        }
         lancerGenerique();
     } catch (error) {
         updateStatusMessage(`Erreur: ${error.message}`);
