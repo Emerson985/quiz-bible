@@ -288,7 +288,7 @@ function updateAIControls() {
     const hasKey = Boolean(state.aiConfig.apiKey);
     if (onlineAIToggle) {
         onlineAIToggle.checked = Boolean(state.aiConfig.enabled && hasKey);
-        onlineAIToggle.disabled = !hasKey;
+        onlineAIToggle.disabled = false;
     }
 }
 
@@ -1169,7 +1169,7 @@ function configureOnlineAI() {
         endpoint: endpointInput.trim() || DEFAULT_AI_CONFIG.endpoint,
         model: modelInput.trim() || DEFAULT_AI_CONFIG.model,
         apiKey: nextApiKey,
-        enabled: current.enabled && Boolean(nextApiKey)
+        enabled: Boolean(nextApiKey)
     };
 
     saveAIConfig();
@@ -1203,7 +1203,8 @@ function registerEvents() {
         const hasKey = Boolean(state.aiConfig.apiKey);
         if (!hasKey && onlineAIToggle.checked) {
             onlineAIToggle.checked = false;
-            updateStatusMessage("Configure d'abord une cle API pour activer l'IA en ligne.");
+            // Ouvrir automatiquement le dialog de configuration
+            configureOnlineAI();
             return;
         }
 
