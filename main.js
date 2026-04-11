@@ -1,10 +1,19 @@
 const { app, BrowserWindow } = require('electron');
+const fs = require('fs');
 const path = require('path');
 
 let mainWindow;
 
-app.setPath('userData', path.join(app.getPath('appData'), 'QuizBiblique'));
-app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('temp'), 'quiz-bible-cache'));
+const userDataPath = path.join(app.getPath('appData'), 'QuizBiblique');
+const cachePath = path.join(userDataPath, 'cache');
+
+app.setPath('userData', userDataPath);
+try {
+    fs.mkdirSync(cachePath, { recursive: true });
+    app.commandLine.appendSwitch('disk-cache-dir', cachePath);
+} catch (error) {
+    // Fallback to Electron default cache path if custom cache path cannot be created.
+}
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 
 app.whenReady().then(() => {

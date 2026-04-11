@@ -181,6 +181,7 @@ const generiqueLine = document.getElementById("generique-line");
 const generiqueSubline = document.getElementById("generique-subline");
 const generiqueSkip = document.getElementById("generique-skip");
 const replayGeneriqueButton = document.getElementById("replay-generique");
+const configureAIButton = document.getElementById("configure-ai-btn");
 const gameOverBanner = document.getElementById("game-over-banner");
 const gainWinBanner = document.getElementById("gain-win-banner");
 const gainWinTitle = document.getElementById("gain-win-title");
@@ -1616,6 +1617,7 @@ function registerEvents() {
     takeMoneyButton.addEventListener("click", takeMoney);
     generiqueSkip.addEventListener("click", fermerGenerique);
     replayGeneriqueButton.addEventListener("click", lancerGenerique);
+    configureAIButton.addEventListener("click", configureOnlineAI);
 
     onlineAIToggle.addEventListener("change", () => {
         state.aiConfig.enabled = onlineAIToggle.checked;

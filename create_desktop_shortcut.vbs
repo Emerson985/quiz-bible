@@ -4,6 +4,7 @@ desktop = shell.SpecialFolders("Desktop")
 
 scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
 exePath = fso.BuildPath(scriptDir, "release\win-unpacked\Quiz Biblique.exe")
+iconPath = fso.BuildPath(scriptDir, "release\.icon-ico\icon.ico")
 workingDir = fso.GetParentFolderName(exePath)
 shortcutPath = fso.BuildPath(desktop, "Quiz Biblique.lnk")
 
@@ -15,7 +16,11 @@ End If
 Set shortcut = shell.CreateShortcut(shortcutPath)
 shortcut.TargetPath = exePath
 shortcut.WorkingDirectory = workingDir
-shortcut.IconLocation = exePath & ",0"
+If fso.FileExists(iconPath) Then
+	shortcut.IconLocation = iconPath & ",0"
+Else
+	shortcut.IconLocation = exePath & ",0"
+End If
 shortcut.Description = "Quiz Biblique"
 shortcut.Save
 
