@@ -84,6 +84,15 @@
             </div>
 
             <p class="gain-inline">Points: <strong id="current-gain">0 pts</strong></p>
+            <section class="progress-wrap" aria-label="Progression du niveau">
+                <div class="progress-meta">
+                    <span>Progression du niveau</span>
+                    <strong id="progress-text">0 / 1000</strong>
+                </div>
+                <div class="progress-track" role="progressbar" aria-label="Progression vers 1000 points" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0" id="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </section>
 
             <section class="lifelines">
                 <button id="lifeline-5050">50:50</button>

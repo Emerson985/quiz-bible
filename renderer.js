@@ -1,7 +1,6 @@
 const SERIE_TARGET = 5;
 const POINTS_PER_SERIE = 100;
 const WIN_SCORE = 1000;
-const TOTAL_QUESTIONS = 50;
 const AI_STORAGE_KEY = "quiz-bible-ai-config";
 const AI_REQUEST_TIMEOUT_MS = 9000;
 
@@ -160,6 +159,9 @@ const verseHint = document.getElementById("verse-hint");
 const questionText = document.getElementById("question-text");
 const hostMessage = document.getElementById("host-message");
 const currentGain = document.getElementById("current-gain");
+const progressText = document.getElementById("progress-text");
+const progressTrack = document.getElementById("progress-track");
+const progressFill = document.getElementById("progress-fill");
 const verseCount = document.getElementById("verse-count");
 const generiqueOverlay = document.getElementById("generique-overlay");
 const generiqueLine = document.getElementById("generique-line");
@@ -219,16 +221,12 @@ function difficultyLevel() {
     return DIFFICULTY_CONFIG[state.difficulty]?.level || 1;
 }
 
-function computeProgressiveDifficulty(questionIndex, totalQuestions) {
-    const available = DIFFICULTY_ORDER;
-
-    if (available.length <= 1) {
-        return available[0] || "easy";
+function getNextDifficulty(difficulty) {
+    const index = DIFFICULTY_ORDER.indexOf(difficulty);
+    if (index === -1 || index >= DIFFICULTY_ORDER.length - 1) {
+        return null;
     }
-
-    const stepSize = Math.max(1, Math.ceil(totalQuestions / available.length));
-    const stage = Math.min(available.length - 1, Math.floor(questionIndex / stepSize));
-    return available[stage];
+    return DIFFICULTY_ORDER[index + 1];
 }
 
 function getEnvVar(name) {
@@ -806,7 +804,7 @@ function buildCharacterRoleQuestion() {
 }
 
 function buildCharacterIdentityQuestion() {
-    const candidates = CHARACTER_FACTS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= 2);
+    const candidates = CHARACTER_FACTS.filter((item) => item.difficulty <= difficultyLevel());
     const selected = pickRandom(candidates);
     if (!selected || candidates.length < 4) {
         return null;
@@ -853,8 +851,8 @@ function buildEventQuestion() {
     };
 }
 
-function buildRelationQuestion() {
-    const candidates = RELATION_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel());
+function buildRelationQuestion(minDifficulty = 1) {
+    const candidates = RELATION_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= minDifficulty);
     const selected = pickRandom(candidates);
     if (!selected) {
         return null;
@@ -870,8 +868,8 @@ function buildRelationQuestion() {
     };
 }
 
-function buildExpressionMeaningQuestion() {
-    const candidates = TERM_MEANING_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel());
+function buildExpressionMeaningQuestion(minDifficulty = 1) {
+    const candidates = TERM_MEANING_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= minDifficulty);
     const selected = pickRandom(candidates);
     if (!selected) {
         return null;
@@ -887,30 +885,46 @@ function buildExpressionMeaningQuestion() {
     };
 }
 
+function buildAdvancedRelationQuestion() {
+    return buildRelationQuestion(3);
+}
+
+function buildAdvancedMeaningQuestion() {
+    return buildExpressionMeaningQuestion(3);
+}
+
 function buildLocalQuestion() {
-    if (!state.localAIEnabled) {
-        const fallbackGenerators = [buildBookQuestion, buildReferenceQuestion];
-        const generator = pickRandom(fallbackGenerators);
-        const question = generator ? generator() : null;
-        if (question) {
-            return question;
-        }
-    }
+    const generatorsByDifficulty = {
+        easy: [
+            buildCharacterRoleQuestion,
+            buildCharacterRoleQuestion,
+            buildCharacterIdentityQuestion,
+            buildCharacterIdentityQuestion,
+            buildExpressionMeaningQuestion
+        ],
+        medium: [
+            buildCharacterRoleQuestion,
+            buildCharacterRoleQuestion,
+            buildEventQuestion,
+            buildEventQuestion,
+            buildCharacterIdentityQuestion
+        ],
+        hard: [
+            buildBookQuestion,
+            buildReferenceQuestion,
+            buildReferenceQuestion,
+            buildBookQuestion
+        ],
+        "very-hard": [
+            buildAdvancedRelationQuestion,
+            buildAdvancedMeaningQuestion,
+            buildAdvancedRelationQuestion,
+            buildReferenceQuestion,
+            buildEventQuestion
+        ]
+    };
 
-    const level = difficultyLevel();
-    let generators = [buildBookQuestion, buildReferenceQuestion, buildCharacterRoleQuestion, buildExpressionMeaningQuestion];
-
-    if (level >= 2) {
-        generators = [...generators, buildCharacterIdentityQuestion, buildEventQuestion, buildExpressionMeaningQuestion];
-    }
-
-    if (level >= 3) {
-        generators = [...generators, buildRelationQuestion, buildExpressionMeaningQuestion];
-    }
-
-    if (level >= 4) {
-        generators = [...generators, buildRelationQuestion, buildEventQuestion, buildExpressionMeaningQuestion];
-    }
+    const generators = generatorsByDifficulty[state.difficulty] || generatorsByDifficulty.easy;
 
     for (let attempt = 0; attempt < 10; attempt += 1) {
         const generator = pickRandom(generators);
@@ -955,6 +969,12 @@ function updateLifelineButtons() {
 
 function renderScore() {
     currentGain.innerText = formatPoints(state.score);
+
+    const clampedScore = Math.max(0, Math.min(WIN_SCORE, state.score));
+    const percent = (clampedScore / WIN_SCORE) * 100;
+    progressText.innerText = `${clampedScore} / ${WIN_SCORE}`;
+    progressFill.style.width = `${percent}%`;
+    progressTrack.setAttribute("aria-valuenow", String(clampedScore));
 }
 
 function updateStatusMessage(message) {
@@ -966,7 +986,7 @@ async function showQuestion() {
     state.currentQuestion = await buildQuestion();
 
     const difficultyLabel = DIFFICULTY_CONFIG[state.difficulty].label;
-    roundLabel.innerText = `Question ${state.currentIndex + 1}/${state.targetQuestions} - Niveau ${difficultyLabel} - Serie ${state.streak}/${SERIE_TARGET}`;
+    roundLabel.innerText = `Question ${state.currentIndex + 1} - Niveau ${difficultyLabel} - Progression ${formatPoints(state.score)}/${formatPoints(WIN_SCORE)} - Serie ${state.streak}/${SERIE_TARGET}`;
     verseHint.innerText = state.currentQuestion.verseHint;
     questionText.innerText = state.currentQuestion.prompt;
 
@@ -995,25 +1015,6 @@ function endGame(message, finalScore, showHostMessage = true) {
 
 async function moveNextQuestion() {
     state.currentIndex += 1;
-    if (state.currentIndex >= state.targetQuestions) {
-        if (state.score >= WIN_SCORE) {
-            playTone("win");
-            endGame(`Felicitations ! Tu as atteint ${formatPoints(WIN_SCORE)}.`, WIN_SCORE);
-            questionText.innerText = "FELICITATIONS !";
-            verseHint.innerText = "Tu as atteint le score maximum.";
-            showCelebrationOverlay(WIN_SCORE);
-            return;
-        }
-
-        endGame(`Partie terminee. Score final: ${formatPoints(state.score)}.`, state.score);
-        questionText.innerText = "Partie terminee";
-        verseHint.innerText = `Objectif non atteint. Il fallait ${formatPoints(WIN_SCORE)} pour gagner.`;
-        showNewGameOverlay(state.score);
-        return;
-    }
-
-    state.difficulty = computeProgressiveDifficulty(state.currentIndex, state.targetQuestions);
-
     await showQuestion();
 }
 
@@ -1052,11 +1053,30 @@ function lockAnswer(index) {
             updateStatusMessage(`Bonne reponse. Serie actuelle: ${state.streak}/${SERIE_TARGET}. Score: ${formatPoints(state.score)}.`);
 
             if (state.score >= WIN_SCORE) {
-                endGame(`Felicitations ! Tu as atteint ${formatPoints(WIN_SCORE)}.`, WIN_SCORE);
-                questionText.innerText = "FELICITATIONS !";
-                verseHint.innerText = "Tu as atteint le score maximum.";
-                playTone("win");
-                showCelebrationOverlay(WIN_SCORE);
+                const nextDifficulty = getNextDifficulty(state.difficulty);
+
+                if (!nextDifficulty) {
+                    endGame(`Felicitations ! Tu as atteint ${formatPoints(WIN_SCORE)} au niveau Tres difficile.`, WIN_SCORE);
+                    questionText.innerText = "FELICITATIONS !";
+                    verseHint.innerText = "Tu as valide tous les niveaux.";
+                    playTone("win");
+                    showCelebrationOverlay(WIN_SCORE);
+                    return;
+                }
+
+                const oldLabel = DIFFICULTY_CONFIG[state.difficulty].label;
+                const nextLabel = DIFFICULTY_CONFIG[nextDifficulty].label;
+                state.difficulty = nextDifficulty;
+                state.score = 0;
+                state.streak = 0;
+                state.currentIndex = -1;
+                renderScore();
+                showGainBanner("Niveau valide !", `${oldLabel} -> ${nextLabel}`);
+                updateStatusMessage(`Bravo ! Tu passes au niveau ${nextLabel}. Atteins encore ${formatPoints(WIN_SCORE)} pour passer au suivant.`);
+
+                setTimeout(async () => {
+                    await moveNextQuestion();
+                }, 1100);
                 return;
             }
 
@@ -1161,7 +1181,7 @@ async function startGame() {
     state.score = 0;
     state.streak = 0;
     state.difficulty = "easy";
-    state.targetQuestions = TOTAL_QUESTIONS;
+    state.targetQuestions = 0;
     state.lifelines = { fifty: true, phone: true, audience: true };
 
     hideGameOverBanner();
@@ -1176,6 +1196,7 @@ async function startGame() {
     clearAnswerStyles();
     updateLifelineButtons();
     renderScore();
+    updateStatusMessage("Partie demarree. Atteins 1000 points pour passer chaque niveau.");
     startBackgroundMusic();
     await moveNextQuestion();
 }
