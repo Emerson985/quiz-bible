@@ -364,7 +364,7 @@ h1 {
 .controls {
     margin-top: 16px;
     display: grid;
-    grid-template-columns: auto 1fr auto auto auto auto;
+    grid-template-columns: auto 1fr auto auto auto;
     gap: 8px;
     align-items: center;
 }
@@ -372,10 +372,6 @@ h1 {
 .controls label {
     color: var(--muted);
     font-weight: 600;
-}
-
-#configure-ai {
-    white-space: nowrap;
 }
 
 select {

@@ -131,7 +131,7 @@ const state = {
     streak: 0,
     targetQuestions: DIFFICULTY_CONFIG["very-hard"].totalQuestions,
     difficulty: "easy",
-    aiConfig: { ...DEFAULT_AI_CONFIG },
+    localAIEnabled: true,
     lifelines: {
         fifty: true,
         phone: true,
@@ -146,7 +146,6 @@ const state = {
 
 const testamentSelect = document.getElementById("testament-select");
 const onlineAIToggle = document.getElementById("online-ai-toggle");
-const configureAIButton = document.getElementById("configure-ai");
 const soundToggle = document.getElementById("sound-toggle");
 const startButton = document.getElementById("start-game");
 const takeMoneyButton = document.getElementById("take-money");
@@ -842,6 +841,15 @@ function buildExpressionMeaningQuestion() {
 }
 
 function buildLocalQuestion() {
+    if (!state.localAIEnabled) {
+        const fallbackGenerators = [buildBookQuestion, buildReferenceQuestion];
+        const generator = pickRandom(fallbackGenerators);
+        const question = generator ? generator() : null;
+        if (question) {
+            return question;
+        }
+    }
+
     const level = difficultyLevel();
     let generators = [buildBookQuestion, buildReferenceQuestion, buildCharacterRoleQuestion, buildExpressionMeaningQuestion];
 
@@ -874,11 +882,6 @@ function buildLocalQuestion() {
 }
 
 async function buildQuestion() {
-    const onlineQuestion = await buildOnlineAIQuestion();
-    if (onlineQuestion) {
-        onlineQuestion.verseHint = `${onlineQuestion.verseHint} (IA en ligne)`;
-        return onlineQuestion;
-    }
     return buildLocalQuestion();
 }
 
@@ -1199,15 +1202,13 @@ function registerEvents() {
     takeMoneyButton.addEventListener("click", takeMoney);
     generiqueSkip.addEventListener("click", fermerGenerique);
     replayGeneriqueButton.addEventListener("click", lancerGenerique);
-    configureAIButton.addEventListener("click", configureOnlineAI);
 
     onlineAIToggle.addEventListener("change", () => {
-        state.aiConfig.enabled = onlineAIToggle.checked;
-        saveAIConfig();
-        if (state.aiConfig.enabled) {
-            updateStatusMessage("Mode IA en ligne active.");
-        } else {
+        state.localAIEnabled = onlineAIToggle.checked;
+        if (state.localAIEnabled) {
             updateStatusMessage("Mode IA local actif.");
+        } else {
+            updateStatusMessage("Mode classique actif.");
         }
     });
 
@@ -1227,19 +1228,16 @@ function registerEvents() {
 async function init() {
     try {
         hideGameOverBanner();
-        loadAIConfig();
-        updateAIControls();
+        if (onlineAIToggle) {
+            onlineAIToggle.checked = state.localAIEnabled;
+        }
         registerEvents();
         const bible = await loadData();
         state.verses = bible.verses;
         verseCount.innerText = state.verses.length.toLocaleString("fr-FR");
         renderScore();
         updateLifelineButtons();
-        if (state.aiConfig.enabled && state.aiConfig.apiKey) {
-            updateStatusMessage(`Base locale chargee et IA en ligne active (${state.aiConfig.model}).`);
-        } else {
-            updateStatusMessage("Base locale chargee. IA locale active (mode hors ligne). Clique sur Configurer IA pour activer l'IA en ligne.");
-        }
+        updateStatusMessage("Base locale chargee. Mode IA local actif.");
         lancerGenerique();
     } catch (error) {
         updateStatusMessage(`Erreur: ${error.message}`);
