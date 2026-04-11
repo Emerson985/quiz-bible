@@ -801,6 +801,53 @@ function pickVerseForDifficulty() {
     return pickRandom(candidates);
 }
 
+function sanitizeWordToken(word) {
+    return String(word || "")
+        .replace(/[^A-Za-z0-9]/g, "")
+        .trim();
+}
+
+function tokenizeVerseWords(text) {
+    return String(text || "")
+        .split(/\s+/)
+        .map((token) => sanitizeWordToken(token))
+        .filter((token) => token.length >= 4);
+}
+
+function truncateVerse(text, maxLen = 200) {
+    const clean = String(text || "").trim();
+    if (clean.length <= maxLen) {
+        return clean;
+    }
+    return `${clean.slice(0, maxLen - 3)}...`;
+}
+
+function pickWordDistractors(excludedWord, count = 3) {
+    const excluded = normaliserTexte(excludedWord);
+    const words = new Set();
+
+    for (let i = 0; i < 120 && words.size < count; i += 1) {
+        const verse = pickRandom(state.filteredVerses);
+        if (!verse) {
+            break;
+        }
+
+        const candidates = tokenizeVerseWords(verse.text);
+        const word = pickRandom(candidates);
+        if (!word) {
+            continue;
+        }
+
+        if (normaliserTexte(word) === excluded) {
+            continue;
+        }
+
+        words.add(word);
+    }
+
+    return [...words];
+}
+
 function buildBookQuestion() {
     const verse = pickVerseForDifficulty();
     if (!verse) {
@@ -846,6 +893,88 @@ function buildReferenceQuestion() {
     return {
         prompt: `Quelle est la reference de ce verset dans ${verse.book_name} ?`,
         verseHint: verse.text,
+        options,
+        correctIndex: options.indexOf(correct)
+    };
+}
+
+function buildMissingWordQuestion() {
+    const verse = pickVerseForDifficulty();
+    if (!verse || !verse.text) {
+        return null;
+    }
+
+    const words = tokenizeVerseWords(verse.text);
+    if (words.length < 6) {
+        return null;
+    }
+
+    const correctWord = pickRandom(words);
+    if (!correctWord) {
+        return null;
+    }
+
+    const wrongWords = pickWordDistractors(correctWord, 3);
+    if (wrongWords.length < 3) {
+        return null;
+    }
+
+    const masked = String(verse.text).replace(new RegExp(`\\b${correctWord}\\b`, "i"), "____");
+    const options = shuffle([correctWord, ...wrongWords]);
+
+    return {
+        prompt: "Quel mot manque dans ce verset ?",
+        verseHint: truncateVerse(masked, 220),
+        options,
+        correctIndex: options.indexOf(correctWord)
+    };
+}
+
+function buildChapterQuestion() {
+    const verse = pickVerseForDifficulty();
+    if (!verse) {
+        return null;
+    }
+
+    const correct = String(verse.chapter);
+    const wrong = new Set();
+
+    while (wrong.size < 3) {
+        const candidate = String(Math.max(1, verse.chapter + Math.floor(Math.random() * 10) - 5));
+        if (candidate !== correct) {
+            wrong.add(candidate);
+        }
+    }
+
+    const options = shuffle([correct, ...wrong]);
+    return {
+        prompt: `Dans quel chapitre de ${verse.book_name} se trouve ce verset ?`,
+        verseHint: truncateVerse(verse.text, 220),
+        options,
+        correctIndex: options.indexOf(correct)
+    };
+}
+
+function buildVerseNumberQuestion() {
+    const verse = pickVerseForDifficulty();
+    if (!verse) {
+        return null;
+    }
+
+    const correct = String(verse.verse);
+    const wrong = new Set();
+
+    while (wrong.size < 3) {
+        const candidate = String(Math.max(1, verse.verse + Math.floor(Math.random() * 14) - 7));
+        if (candidate !== correct) {
+            wrong.add(candidate);
+        }
+    }
+
+    const options = shuffle([correct, ...wrong]);
+    return {
+        prompt: `Quel est le numero du verset dans ${verse.book_name} ${verse.chapter} ?`,
+        verseHint: truncateVerse(verse.text, 220),
         options,
         correctIndex: options.indexOf(correct)
     };
@@ -966,27 +1095,43 @@ function buildLocalQuestion() {
             buildCharacterRoleQuestion,
             buildCharacterIdentityQuestion,
             buildCharacterIdentityQuestion,
-            buildExpressionMeaningQuestion
+            buildExpressionMeaningQuestion,
+            buildBookQuestion,
+            buildBookQuestion,
+            buildReferenceQuestion,
+            buildMissingWordQuestion,
+            buildChapterQuestion
         ],
         medium: [
             buildCharacterRoleQuestion,
             buildCharacterRoleQuestion,
             buildEventQuestion,
             buildEventQuestion,
-            buildCharacterIdentityQuestion
+            buildCharacterIdentityQuestion,
+            buildBookQuestion,
+            buildReferenceQuestion,
+            buildMissingWordQuestion,
+            buildChapterQuestion,
+            buildVerseNumberQuestion
         ],
         hard: [
             buildBookQuestion,
             buildReferenceQuestion,
             buildReferenceQuestion,
-            buildBookQuestion
+            buildBookQuestion,
+            buildMissingWordQuestion,
+            buildChapterQuestion,
+            buildVerseNumberQuestion
         ],
         "very-hard": [
             buildAdvancedRelationQuestion,
             buildAdvancedMeaningQuestion,
             buildAdvancedRelationQuestion,
             buildReferenceQuestion,
-            buildEventQuestion
+            buildEventQuestion,
+            buildMissingWordQuestion,
+            buildChapterQuestion,
+            buildVerseNumberQuestion
         ]
     };
 
@@ -994,7 +1139,7 @@ function buildLocalQuestion() {
 
     const history = getDifficultyQuestionHistory(state.difficulty);
 
-    for (let attempt = 0; attempt < 80; attempt += 1) {
+    for (let attempt = 0; attempt < 400; attempt += 1) {
         const generator = pickRandom(generators);
         const question = generator ? generator() : null;
         if (question) {
@@ -1012,20 +1157,19 @@ function buildLocalQuestion() {
         }
     }
 
-    const fallbackQuestion = {
-        prompt: "Quel est le premier livre de la Bible ?",
-        verseHint: "Question de secours.",
-        options: ["Genese", "Exode", "Matthieu", "Psaumes"],
-        correctIndex: 0
-    };
-
-    const fallbackSignature = buildQuestionSignature(fallbackQuestion);
-    if (!history.has(fallbackSignature)) {
-        history.add(fallbackSignature);
-        return fallbackQuestion;
+    // Emergency generator: still bible-based, tries to avoid stopping the game.
+    const emergency = buildReferenceQuestion() || buildBookQuestion() || buildChapterQuestion() || buildVerseNumberQuestion();
+    if (!emergency || !isQuestionShapeValid(emergency)) {
+        return null;
     }
 
-    return null;
+    const emergencySignature = buildQuestionSignature(emergency);
+    if (history.has(emergencySignature)) {
+        return null;
+    }
+
+    history.add(emergencySignature);
+    return emergency;
 }
 
 async function buildQuestion() {
