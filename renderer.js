@@ -17,6 +17,8 @@ const DIFFICULTY_CONFIG = {
     "very-hard": { label: "Tres difficile", totalQuestions: 18, level: 4 }
 };
 
+const DIFFICULTY_ORDER = ["easy", "medium", "hard", "very-hard"];
+
 const CHARACTER_FACTS = [
     { name: "Moise", role: "le conducteur d'Israel hors d'Egypte", action: "a recu les dix commandements", difficulty: 1 },
     { name: "Noe", role: "le constructeur de l'arche", action: "a survécu au deluge", difficulty: 1 },
@@ -127,7 +129,7 @@ const state = {
     gameRunning: false,
     score: 0,
     streak: 0,
-    targetQuestions: DIFFICULTY_CONFIG.easy.totalQuestions,
+    targetQuestions: DIFFICULTY_CONFIG["very-hard"].totalQuestions,
     difficulty: "easy",
     aiConfig: { ...DEFAULT_AI_CONFIG },
     lifelines: {
@@ -143,7 +145,6 @@ const state = {
 };
 
 const testamentSelect = document.getElementById("testament-select");
-const difficultySelect = document.getElementById("difficulty-select");
 const onlineAIToggle = document.getElementById("online-ai-toggle");
 const configureAIButton = document.getElementById("configure-ai");
 const soundToggle = document.getElementById("sound-toggle");
@@ -211,6 +212,18 @@ function formatPoints(value) {
 
 function difficultyLevel() {
     return DIFFICULTY_CONFIG[state.difficulty]?.level || 1;
+}
+
+function computeProgressiveDifficulty(questionIndex, totalQuestions) {
+    const available = DIFFICULTY_ORDER;
+
+    if (available.length <= 1) {
+        return available[0] || "easy";
+    }
+
+    const stepSize = Math.max(1, Math.ceil(totalQuestions / available.length));
+    const stage = Math.min(available.length - 1, Math.floor(questionIndex / stepSize));
+    return available[stage];
 }
 
 function getEnvVar(name) {
@@ -939,6 +952,8 @@ async function moveNextQuestion() {
         return;
     }
 
+    state.difficulty = computeProgressiveDifficulty(state.currentIndex, state.targetQuestions);
+
     await showQuestion();
 }
 
@@ -1073,8 +1088,8 @@ async function startGame() {
     state.currentIndex = -1;
     state.score = 0;
     state.streak = 0;
-    state.difficulty = difficultySelect.value;
-    state.targetQuestions = DIFFICULTY_CONFIG[state.difficulty].totalQuestions;
+    state.difficulty = "easy";
+    state.targetQuestions = DIFFICULTY_CONFIG["very-hard"].totalQuestions;
     state.lifelines = { fifty: true, phone: true, audience: true };
 
     hideGameOverBanner();
@@ -1198,13 +1213,6 @@ function registerEvents() {
             updateStatusMessage("IA en ligne active. En cas d'echec API, le moteur local prend le relais.");
         } else {
             updateStatusMessage("IA en ligne desactivee. Moteur local actif.");
-        }
-    });
-
-    difficultySelect.addEventListener("change", () => {
-        if (!state.gameRunning) {
-            const label = DIFFICULTY_CONFIG[difficultySelect.value].label;
-            updateStatusMessage(`Niveau selectionne: ${label}. Appuie sur Commencer pour lancer une nouvelle partie.`);
         }
     });
 
