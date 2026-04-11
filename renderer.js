@@ -182,6 +182,15 @@ const generiqueSubline = document.getElementById("generique-subline");
 const generiqueSkip = document.getElementById("generique-skip");
 const replayGeneriqueButton = document.getElementById("replay-generique");
 const configureAIButton = document.getElementById("configure-ai-btn");
+const aiConfigPanel = document.getElementById("ai-config-panel");
+const aiConfigBadge = document.getElementById("ai-config-badge");
+const aiEndpointInput = document.getElementById("ai-endpoint-input");
+const aiModelInput = document.getElementById("ai-model-input");
+const aiKeyInput = document.getElementById("ai-key-input");
+const aiSaveButton = document.getElementById("ai-save-btn");
+const aiClearButton = document.getElementById("ai-clear-btn");
+const aiCloseButton = document.getElementById("ai-close-btn");
+const aiConfigStatus = document.getElementById("ai-config-status");
 const gameOverBanner = document.getElementById("game-over-banner");
 const gainWinBanner = document.getElementById("gain-win-banner");
 const gainWinTitle = document.getElementById("gain-win-title");
@@ -196,6 +205,117 @@ const confettiContainer = document.getElementById("confetti-container");
 
 let gainBannerTimer = null;
 let newGameOverlayTimer = null;
+
+function maskApiKey(apiKey) {
+    if (!apiKey) {
+        return "Aucune cle enregistree";
+    }
+
+    if (apiKey.length <= 8) {
+        return "Cle enregistree";
+    }
+
+    return `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`;
+}
+
+function populateAIConfigForm() {
+    if (!aiEndpointInput || !aiModelInput || !aiKeyInput) {
+        return;
+    }
+
+    aiEndpointInput.value = state.aiConfig.endpoint || DEFAULT_AI_CONFIG.endpoint;
+    aiModelInput.value = state.aiConfig.model || DEFAULT_AI_CONFIG.model;
+    aiKeyInput.value = state.aiConfig.apiKey || "";
+}
+
+function updateAIConfigPanelState() {
+    if (!aiConfigPanel || !aiConfigBadge || !aiConfigStatus) {
+        return;
+    }
+
+    const hasKey = Boolean(state.aiConfig.apiKey);
+    aiConfigBadge.textContent = hasKey ? "Configuree" : "Non configuree";
+    aiConfigBadge.classList.toggle("configured", hasKey);
+    aiConfigStatus.textContent = hasKey
+        ? `Cle detectee: ${maskApiKey(state.aiConfig.apiKey)}. Modele actif: ${state.aiConfig.model}.`
+        : "Le moteur local reste actif tant qu'aucune cle n'est enregistree.";
+}
+
+function setAIConfigPanelOpen(isOpen) {
+    if (!aiConfigPanel || !configureAIButton) {
+        return;
+    }
+
+    aiConfigPanel.hidden = !isOpen;
+    aiConfigPanel.classList.toggle("open", isOpen);
+    configureAIButton.classList.toggle("open", isOpen);
+    configureAIButton.textContent = isOpen ? "Masquer IA" : (state.aiConfig.apiKey ? "IA configuree" : "Configurer IA");
+
+    if (isOpen) {
+        populateAIConfigForm();
+        updateAIConfigPanelState();
+        aiKeyInput.focus();
+    }
+}
+
+function toggleAIConfigPanel() {
+    setAIConfigPanelOpen(aiConfigPanel.hidden);
+}
+
+function saveAIConfigFromPanel() {
+    const nextEndpoint = (aiEndpointInput.value || "").trim() || DEFAULT_AI_CONFIG.endpoint;
+    const nextModel = (aiModelInput.value || "").trim() || DEFAULT_AI_CONFIG.model;
+    const nextApiKey = (aiKeyInput.value || "").trim();
+
+    state.aiConfig = {
+        ...state.aiConfig,
+        endpoint: nextEndpoint,
+        model: nextModel,
+        apiKey: nextApiKey,
+        enabled: Boolean(nextApiKey)
+    };
+
+    saveAIConfig();
+    updateAIControls();
+    updateAIConfigPanelState();
+
+    if (!state.aiConfig.apiKey) {
+        updateStatusMessage("Configuration IA enregistree, mais aucune cle API active. Le moteur local reste utilise.");
+        return;
+    }
+
+    updateStatusMessage(`Configuration IA enregistree. Modele actif: ${state.aiConfig.model}.`);
+}
+
+function clearAIConfigFromPanel() {
+    state.aiConfig = {
+        ...state.aiConfig,
+        apiKey: "",
+        enabled: false
+    };
+
+    saveAIConfig();
+    populateAIConfigForm();
+    updateAIControls();
+    updateAIConfigPanelState();
+    updateStatusMessage("Cle API effacee. Le moteur local est a nouveau actif.");
+}
+
+function handleAIConfigTyping() {
+    if (!aiConfigStatus || !aiConfigBadge) {
+        return;
+    }
+
+    const draftKey = (aiKeyInput.value || "").trim();
+    const draftModel = (aiModelInput.value || "").trim() || DEFAULT_AI_CONFIG.model;
+    const hasKey = Boolean(draftKey);
+
+    aiConfigBadge.textContent = hasKey ? "Pret a activer" : "Non configuree";
+    aiConfigBadge.classList.toggle("configured", hasKey);
+    aiConfigStatus.textContent = hasKey
+        ? `Cle saisie: ${maskApiKey(draftKey)}. Le modele ${draftModel} sera active apres enregistrement.`
+        : "Le moteur local reste actif tant qu'aucune cle n'est enregistree.";
+}
 
 function pickRandom(list) {
     if (!list.length) {
@@ -360,6 +480,18 @@ function updateAIControls() {
         onlineAIToggle.checked = Boolean(state.aiConfig.enabled);
         onlineAIToggle.disabled = false;
     }
+
+    if (configureAIButton) {
+        const isConfigured = Boolean(state.aiConfig.apiKey);
+        const isPanelOpen = aiConfigPanel ? !aiConfigPanel.hidden : false;
+        configureAIButton.textContent = isPanelOpen ? "Masquer IA" : (isConfigured ? "IA configuree" : "Configurer IA");
+        configureAIButton.title = isConfigured
+            ? `IA configuree (${state.aiConfig.model})`
+            : "Configurer l'IA Gemini";
+        configureAIButton.classList.toggle("configured", isConfigured);
+    }
+
+    updateAIConfigPanelState();
 }
 
 function stripCodeFence(text) {
@@ -1557,50 +1689,7 @@ async function loadData() {
 }
 
 function configureOnlineAI() {
-    const current = state.aiConfig;
-    const endpointInput = window.prompt("Endpoint IA (chat completions)", current.endpoint);
-    if (endpointInput === null) {
-        return;
-    }
-
-    const modelInput = window.prompt("Modele IA", current.model);
-    if (modelInput === null) {
-        return;
-    }
-
-    const keyInput = window.prompt(
-        "Cle API (laisser vide pour conserver, taper CLEAR pour supprimer)",
-        ""
-    );
-
-    if (keyInput === null) {
-        return;
-    }
-
-    let nextApiKey = current.apiKey;
-    if (keyInput.trim().toUpperCase() === "CLEAR") {
-        nextApiKey = "";
-    } else if (keyInput.trim()) {
-        nextApiKey = keyInput.trim();
-    }
-
-    state.aiConfig = {
-        ...current,
-        endpoint: endpointInput.trim() || DEFAULT_AI_CONFIG.endpoint,
-        model: modelInput.trim() || DEFAULT_AI_CONFIG.model,
-        apiKey: nextApiKey,
-        enabled: current.enabled
-    };
-
-    saveAIConfig();
-    updateAIControls();
-
-    if (!state.aiConfig.apiKey) {
-        updateStatusMessage("Configuration IA enregistree, mais aucune cle API active. Le moteur local reste utilise.");
-        return;
-    }
-
-    updateStatusMessage(`Configuration IA enregistree. Modele actif: ${state.aiConfig.model}.`);
+    setAIConfigPanelOpen(true);
 }
 
 function registerEvents() {
@@ -1617,9 +1706,27 @@ function registerEvents() {
     takeMoneyButton.addEventListener("click", takeMoney);
     generiqueSkip.addEventListener("click", fermerGenerique);
     replayGeneriqueButton.addEventListener("click", lancerGenerique);
-    configureAIButton.addEventListener("click", configureOnlineAI);
+    configureAIButton.addEventListener("click", toggleAIConfigPanel);
+    aiSaveButton.addEventListener("click", saveAIConfigFromPanel);
+    aiClearButton.addEventListener("click", clearAIConfigFromPanel);
+    aiCloseButton.addEventListener("click", () => setAIConfigPanelOpen(false));
+    aiEndpointInput.addEventListener("input", handleAIConfigTyping);
+    aiModelInput.addEventListener("input", handleAIConfigTyping);
+    aiKeyInput.addEventListener("input", handleAIConfigTyping);
 
     onlineAIToggle.addEventListener("change", () => {
+        if (onlineAIToggle.checked && !state.aiConfig.apiKey) {
+            configureOnlineAI();
+            if (!state.aiConfig.apiKey) {
+                state.aiConfig.enabled = false;
+                onlineAIToggle.checked = false;
+                saveAIConfig();
+                updateAIControls();
+                updateStatusMessage("Aucune cle API detectee. Le mode IA reste local tant que la configuration n'est pas enregistree.");
+                return;
+            }
+        }
+
         state.aiConfig.enabled = onlineAIToggle.checked;
         saveAIConfig();
 
@@ -1651,6 +1758,7 @@ async function init() {
     try {
         hideGameOverBanner();
         loadAIConfig();
+        populateAIConfigForm();
         updateAIControls();
         registerEvents();
         const bible = await loadData();

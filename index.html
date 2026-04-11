@@ -73,7 +73,7 @@
                     <span>IA</span>
                 </label>
 
-                <button id="configure-ai-btn" class="sound-wrap" title="Configurer clé API Gemini" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; border: 1px solid currentColor;background-color:transparent;">Configurer</button>
+                <button id="configure-ai-btn" class="config-ai-btn" title="Configurer l'IA Gemini">Configurer IA</button>
 
                 <label for="sound-toggle" class="sound-wrap">
                     <input id="sound-toggle" type="checkbox" checked>
@@ -84,6 +84,33 @@
                 <button id="take-money" class="take-btn">Terminer la partie</button>
                 <button id="replay-generique" class="take-btn" aria-label="Rejouer le generique" title="Rejouer le generique">&#9654;</button>
             </div>
+
+            <section id="ai-config-panel" class="ai-config-panel" aria-live="polite" hidden>
+                <div class="ai-config-header">
+                    <strong>Configuration Gemini</strong>
+                    <span id="ai-config-badge" class="ai-config-badge">Non configuree</span>
+                </div>
+                <div class="ai-config-grid">
+                    <label class="ai-config-field" for="ai-endpoint-input">
+                        <span>Endpoint</span>
+                        <input id="ai-endpoint-input" type="text" autocomplete="off">
+                    </label>
+                    <label class="ai-config-field" for="ai-model-input">
+                        <span>Modele</span>
+                        <input id="ai-model-input" type="text" autocomplete="off">
+                    </label>
+                    <label class="ai-config-field ai-config-field-key" for="ai-key-input">
+                        <span>Cle API</span>
+                        <input id="ai-key-input" type="password" autocomplete="off" placeholder="Collez votre cle Gemini ici">
+                    </label>
+                </div>
+                <div class="ai-config-actions">
+                    <button id="ai-save-btn" class="start-btn" type="button">Enregistrer</button>
+                    <button id="ai-clear-btn" class="take-btn" type="button">Effacer la cle</button>
+                    <button id="ai-close-btn" class="take-btn" type="button">Fermer</button>
+                </div>
+                <p id="ai-config-status" class="ai-config-status">Le moteur local reste actif tant qu'aucune cle n'est enregistree.</p>
+            </section>
 
             <p class="gain-inline">Points: <strong id="current-gain">0 pts</strong></p>
             <section class="progress-wrap" aria-label="Progression du niveau">
