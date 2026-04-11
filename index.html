@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qui Veut Gagner Des Millions - Bible</title>
+    <title>Qui Veut Mieux Connaitre la Bible</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
         <div class="generique-panel">
             <img src="assets/logo.png" alt="Logo" class="generique-logo">
             <p class="generique-kicker">Emission Speciale</p>
-            <h2 id="generique-line">Qui Veut Gagner Des Millions</h2>
+            <h2 id="generique-line">Qui Veut Mieux Connaitre la Bible</h2>
             <p id="generique-subline">Edition Biblique</p>
             <button id="generique-skip">Passer</button>
         </div>
@@ -29,8 +29,8 @@
     <div id="new-game-overlay" class="new-game-overlay">
         <div class="new-game-card">
             <h2 class="ng-title">GAME OVER</h2>
-            <p class="ng-fallback-label">Vous repartez avec</p>
-            <p class="ng-fallback-amount" id="ng-fallback-amount">$0</p>
+            <p class="ng-fallback-label">Score final</p>
+            <p class="ng-fallback-amount" id="ng-fallback-amount">0 pts</p>
             <button id="ng-restart-btn" class="ng-restart-btn">Nouvelle Partie</button>
         </div>
     </div>
@@ -46,7 +46,7 @@
                 <img src="assets/logo.png" alt="Logo" class="logo">
                 <div>
                     <p class="kicker">Spécial Bible</p>
-                    <h1>Qui Veut Gagner Des Millions</h1>
+                    <h1>Qui Veut Mieux Connaitre la Bible</h1>
                 </div>
             </header>
 
@@ -58,17 +58,32 @@
                     <option value="new">Nouveau Testament</option>
                 </select>
 
+                <label for="difficulty-select">Niveau</label>
+                <select id="difficulty-select">
+                    <option value="easy">Facile</option>
+                    <option value="medium">Moyen</option>
+                    <option value="hard">Difficile</option>
+                    <option value="very-hard">Tres difficile</option>
+                </select>
+
+                <label for="online-ai-toggle" class="sound-wrap">
+                    <input id="online-ai-toggle" type="checkbox">
+                    <span>IA en ligne</span>
+                </label>
+
+                <button id="configure-ai" class="take-btn" type="button">Configurer IA</button>
+
                 <label for="sound-toggle" class="sound-wrap">
                     <input id="sound-toggle" type="checkbox" checked>
                     <span>Sons</span>
                 </label>
 
                 <button id="start-game" class="start-btn">Commencer</button>
-                <button id="take-money" class="take-btn">Encaisser</button>
+                <button id="take-money" class="take-btn">Terminer la partie</button>
                 <button id="replay-generique" class="take-btn" aria-label="Rejouer le generique" title="Rejouer le generique">&#9654;</button>
             </div>
 
-            <p class="gain-inline">Gain actuel: <strong id="current-gain">$0</strong></p>
+            <p class="gain-inline">Points: <strong id="current-gain">0 pts</strong></p>
 
             <section class="lifelines">
                 <button id="lifeline-5050">50:50</button>
@@ -89,7 +104,7 @@
                 <button class="answer" id="answer-3"><span>D</span><strong>...</strong></button>
             </section>
 
-            <p id="host-message">Base locale chargée: <strong id="verse-count">0</strong> versets.</p>
+            <p id="host-message">Base locale chargee: <strong id="verse-count">0</strong> versets. IA locale active.</p>
         </section>
     </main>
 
