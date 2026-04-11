@@ -9,6 +9,7 @@
     "start:web": "http-server . -c-1 -p 8080",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --win nsis",
+    "dist:msstore": "electron-builder --win appx",
     "dist:zip": "powershell -NoProfile -Command \"if (Test-Path 'release\\Quiz-Biblique-win.zip') { Remove-Item 'release\\Quiz-Biblique-win.zip' -Force }; Compress-Archive -Path 'release\\win-unpacked\\*' -DestinationPath 'release\\Quiz-Biblique-win.zip' -Force\"",
     "web:zip": "powershell -NoProfile -Command \"if (-not (Test-Path 'release')) { New-Item -ItemType Directory -Path 'release' | Out-Null }; if (Test-Path 'release\\Quiz-Biblique-web.zip') { Remove-Item 'release\\Quiz-Biblique-web.zip' -Force }; Compress-Archive -Path 'index.html','style.css','renderer.js','assets\\logo.png','assets\\logo.svg','data\\segond_1910.json' -DestinationPath 'release\\Quiz-Biblique-web.zip' -Force\""
   },
@@ -29,8 +30,22 @@
     ],
     "win": {
       "icon": "assets/logo.png",
+      "signAndEditExecutable": false,
       "target": [
-        "nsis"
+        "nsis",
+        "appx"
+      ]
+    },
+    "appx": {
+      "applicationId": "QuizBiblique",
+      "displayName": "Quiz Biblique",
+      "identityName": "Emerson985.QuizBiblique",
+      "publisherDisplayName": "Emerson985",
+      "publisher": "CN=TON_ID_PARTNER_CENTER",
+      "backgroundColor": "#07152f",
+      "languages": [
+        "fr-FR",
+        "en-US"
       ]
     },
     "nsis": {
