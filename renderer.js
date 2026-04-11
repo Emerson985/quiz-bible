@@ -262,6 +262,27 @@ function buildQuestionSignature(question) {
     return `${prompt}::${hint}::${options}::${correct}`;
 }
 
+function isQuestionShapeValid(question) {
+    if (!question || typeof question !== "object") {
+        return false;
+    }
+
+    if (!Array.isArray(question.options) || question.options.length !== 4) {
+        return false;
+    }
+
+    if (!Number.isInteger(question.correctIndex) || question.correctIndex < 0 || question.correctIndex > 3) {
+        return false;
+    }
+
+    const correctOption = question.options[question.correctIndex];
+    if (typeof correctOption !== "string" || !correctOption.trim()) {
+        return false;
+    }
+
+    return true;
+}
+
 function difficultyLevel() {
     return DIFFICULTY_CONFIG[state.difficulty]?.level || 1;
 }
@@ -977,6 +998,10 @@ function buildLocalQuestion() {
         const generator = pickRandom(generators);
         const question = generator ? generator() : null;
         if (question) {
+            if (!isQuestionShapeValid(question)) {
+                continue;
+            }
+
             const signature = buildQuestionSignature(question);
             if (history.has(signature)) {
                 continue;
@@ -1100,7 +1125,11 @@ function lockAnswer(index) {
     const correctButton = answerButtons[correct];
 
     setTimeout(async () => {
-        if (index === correct) {
+        const selectedAnswer = state.currentQuestion.options[index] || "";
+        const correctAnswer = state.currentQuestion.options[correct] || "";
+        const isCorrectAnswer = index === correct || normaliserTexte(selectedAnswer) === normaliserTexte(correctAnswer);
+
+        if (isCorrectAnswer) {
             selectedButton.classList.add("correct");
             playTone("correct");
 
@@ -1157,7 +1186,9 @@ function lockAnswer(index) {
         }
 
         selectedButton.classList.add("wrong");
-        correctButton.classList.add("correct");
+        if (correctButton) {
+            correctButton.classList.add("correct");
+        }
         playTone("wrong");
         const finalScore = state.score;
         state.streak = 0;
