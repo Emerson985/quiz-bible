@@ -270,7 +270,7 @@ function loadAIConfig() {
     }
 
     if (!config.apiKey) {
-        config.enabled = false;
+        // Keep enabled state even without API key — toggle is free like sound toggle
     }
 
     state.aiConfig = config;
@@ -336,7 +336,11 @@ function validateAIQuestion(payload) {
 }
 
 async function buildOnlineAIQuestion() {
-    if (!state.aiConfig.enabled || !state.aiConfig.apiKey) {
+    if (!state.aiConfig.enabled) {
+        return null;
+    }
+    if (!state.aiConfig.apiKey) {
+        updateStatusMessage("IA en ligne cochee mais aucune cle API configuree. Configure l'IA via le bouton \"Configurer IA\".");
         return null;
     }
 
