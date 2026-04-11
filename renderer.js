@@ -263,8 +263,8 @@ function toggleAIConfigPanel() {
 }
 
 function saveAIConfigFromPanel() {
-    const nextEndpoint = (aiEndpointInput.value || "").trim() || DEFAULT_AI_CONFIG.endpoint;
-    const nextModel = (aiModelInput.value || "").trim() || DEFAULT_AI_CONFIG.model;
+    const nextEndpoint = DEFAULT_AI_CONFIG.endpoint;
+    const nextModel = DEFAULT_AI_CONFIG.model;
     const nextApiKey = (aiKeyInput.value || "").trim();
 
     state.aiConfig = {
@@ -277,6 +277,7 @@ function saveAIConfigFromPanel() {
 
     saveAIConfig();
     updateAIControls();
+    populateAIConfigForm();
     updateAIConfigPanelState();
 
     if (!state.aiConfig.apiKey) {
@@ -428,6 +429,19 @@ function getEnvVar(name) {
     return "";
 }
 
+function normalizeGeminiConfig(config) {
+    const modelText = String(config?.model || "").trim().toLowerCase();
+    const endpointText = String(config?.endpoint || "").trim().toLowerCase();
+    const usesOpenAIModel = modelText.startsWith("gpt") || modelText.includes("openai");
+    const usesOpenAIEndpoint = endpointText.includes("api.openai.com");
+
+    return {
+        ...config,
+        model: usesOpenAIModel ? DEFAULT_AI_CONFIG.model : (config.model || DEFAULT_AI_CONFIG.model),
+        endpoint: usesOpenAIEndpoint ? DEFAULT_AI_CONFIG.endpoint : (config.endpoint || DEFAULT_AI_CONFIG.endpoint)
+    };
+}
+
 function loadAIConfig() {
     const config = { ...DEFAULT_AI_CONFIG };
 
@@ -446,9 +460,9 @@ function loadAIConfig() {
         // Ignore invalid local storage payload.
     }
 
-    const envApiKey = getEnvVar("GEMINI_API_KEY") || getEnvVar("OPENAI_API_KEY");
-    const envModel = getEnvVar("GEMINI_MODEL") || getEnvVar("OPENAI_MODEL");
-    const envEndpoint = getEnvVar("GEMINI_ENDPOINT") || getEnvVar("OPENAI_ENDPOINT");
+    const envApiKey = getEnvVar("GEMINI_API_KEY");
+    const envModel = getEnvVar("GEMINI_MODEL");
+    const envEndpoint = getEnvVar("GEMINI_ENDPOINT");
 
     if (!config.apiKey && envApiKey) {
         config.apiKey = envApiKey.trim();
@@ -464,7 +478,7 @@ function loadAIConfig() {
         // Keep enabled state even without API key — toggle is free like sound toggle
     }
 
-    state.aiConfig = config;
+    state.aiConfig = normalizeGeminiConfig(config);
 }
 
 function saveAIConfig() {
