@@ -21,33 +21,33 @@ const DIFFICULTY_CONFIG = {
 const DIFFICULTY_ORDER = ["easy", "medium", "hard", "very-hard"];
 
 const CHARACTER_FACTS = [
-    { name: "Moise", role: "le conducteur d'Israel hors d'Egypte", action: "a recu les dix commandements", difficulty: 1 },
-    { name: "Noe", role: "le constructeur de l'arche", action: "a survécu au deluge", difficulty: 1 },
-    { name: "David", role: "le roi berger qui a vaincu Goliath", action: "a vaincu Goliath", difficulty: 1 },
-    { name: "Salomon", role: "le roi connu pour sa sagesse", action: "a construit le premier temple", difficulty: 1 },
-    { name: "Esther", role: "la reine qui a protege son peuple", action: "a intercede devant le roi", difficulty: 2 },
-    { name: "Daniel", role: "le prophete reste fidele en exil", action: "a ete jete dans la fosse aux lions", difficulty: 2 },
-    { name: "Elie", role: "le prophete du feu sur le mont Carmel", action: "a confronte les prophetes de Baal", difficulty: 2 },
-    { name: "Jonas", role: "le prophete envoye a Ninive", action: "a ete avale par un grand poisson", difficulty: 2 },
-    { name: "Pierre", role: "l'apotre qui a renie puis affirme sa foi", action: "a renie Jesus trois fois", difficulty: 2 },
-    { name: "Paul", role: "l'apotre missionnaire des nations", action: "a ecrit de nombreuses epitres", difficulty: 2 },
-    { name: "Josue", role: "le successeur de Moise", action: "a mene Israel a Jericho", difficulty: 3 },
-    { name: "Nehemie", role: "le rebatisseur des murailles de Jerusalem", action: "a reconstruit les murailles", difficulty: 3 },
-    { name: "Debora", role: "la juge et prophetesse d'Israel", action: "a conduit Israel avec Barak", difficulty: 3 },
-    { name: "Barnabas", role: "le compagnon encourageant de Paul", action: "a accompagne Paul en mission", difficulty: 3 },
-    { name: "Timothee", role: "le jeune responsable forme par Paul", action: "a recu des lettres pastorales", difficulty: 3 },
-    { name: "Melchisedek", role: "le roi-sacrificateur de Salem", action: "a beni Abraham", difficulty: 4 },
-    { name: "Apollos", role: "l'orateur eloquent instruit dans les Ecritures", action: "a enseigne avec puissance", difficulty: 4 },
-    { name: "Onesime", role: "l'esclave devenu frere en Christ", action: "est mentionne dans l'epitre a Philemon", difficulty: 4 }
+    { name: "Moise", role: "le conducteur d'Israel hors d'Egypte", action: "a recu les dix commandements", difficulty: 1, testament: "old" },
+    { name: "Noe", role: "le constructeur de l'arche", action: "a survecu au deluge", difficulty: 1, testament: "old" },
+    { name: "David", role: "le roi berger qui a vaincu Goliath", action: "a vaincu Goliath", difficulty: 1, testament: "old" },
+    { name: "Salomon", role: "le roi connu pour sa sagesse", action: "a construit le premier temple", difficulty: 1, testament: "old" },
+    { name: "Esther", role: "la reine qui a protege son peuple", action: "a intercede devant le roi", difficulty: 2, testament: "old" },
+    { name: "Daniel", role: "le prophete reste fidele en exil", action: "a ete jete dans la fosse aux lions", difficulty: 2, testament: "old" },
+    { name: "Elie", role: "le prophete du feu sur le mont Carmel", action: "a confronte les prophetes de Baal", difficulty: 2, testament: "old" },
+    { name: "Jonas", role: "le prophete envoye a Ninive", action: "a ete avale par un grand poisson", difficulty: 2, testament: "old" },
+    { name: "Pierre", role: "l'apotre qui a renie puis affirme sa foi", action: "a renie Jesus trois fois", difficulty: 2, testament: "new" },
+    { name: "Paul", role: "l'apotre missionnaire des nations", action: "a ecrit de nombreuses epitres", difficulty: 2, testament: "new" },
+    { name: "Josue", role: "le successeur de Moise", action: "a mene Israel a Jericho", difficulty: 3, testament: "old" },
+    { name: "Nehemie", role: "le rebatisseur des murailles de Jerusalem", action: "a reconstruit les murailles", difficulty: 3, testament: "old" },
+    { name: "Debora", role: "la juge et prophetesse d'Israel", action: "a conduit Israel avec Barak", difficulty: 3, testament: "old" },
+    { name: "Barnabas", role: "le compagnon encourageant de Paul", action: "a accompagne Paul en mission", difficulty: 3, testament: "new" },
+    { name: "Timothee", role: "le jeune responsable forme par Paul", action: "a recu des lettres pastorales", difficulty: 3, testament: "new" },
+    { name: "Melchisedek", role: "le roi-sacrificateur de Salem", action: "a beni Abraham", difficulty: 4, testament: "old" },
+    { name: "Apollos", role: "l'orateur eloquent instruit dans les Ecritures", action: "a enseigne avec puissance", difficulty: 4, testament: "new" },
+    { name: "Onesime", role: "l'esclave devenu frere en Christ", action: "est mentionne dans l'epitre a Philemon", difficulty: 4, testament: "new" }
 ];
 
 const EVENT_FACTS = [
-    { event: "la chute des murailles de Jericho", who: "Josue", where: "Jericho", difficulty: 2 },
-    { event: "la traversee de la mer Rouge", who: "Moise", where: "mer Rouge", difficulty: 1 },
-    { event: "la naissance de Jesus", who: "Jesus", where: "Bethleem", difficulty: 1 },
-    { event: "la Pentecote", who: "les apotres", where: "Jerusalem", difficulty: 2 },
-    { event: "la reconstruction des murailles", who: "Nehemie", where: "Jerusalem", difficulty: 3 },
-    { event: "la vision des ossements desséchés", who: "Ezechiel", where: "Babylone", difficulty: 4 }
+    { event: "la chute des murailles de Jericho", who: "Josue", where: "Jericho", difficulty: 2, testament: "old" },
+    { event: "la traversee de la mer Rouge", who: "Moise", where: "mer Rouge", difficulty: 1, testament: "old" },
+    { event: "la naissance de Jesus", who: "Jesus", where: "Bethleem", difficulty: 1, testament: "new" },
+    { event: "la Pentecote", who: "les apotres", where: "Jerusalem", difficulty: 2, testament: "new" },
+    { event: "la reconstruction des murailles", who: "Nehemie", where: "Jerusalem", difficulty: 3, testament: "old" },
+    { event: "la vision des ossements desseches", who: "Ezechiel", where: "Babylone", difficulty: 4, testament: "old" }
 ];
 
 const RELATION_QUESTIONS = [
@@ -55,25 +55,29 @@ const RELATION_QUESTIONS = [
         prompt: "Qui etait le pere de Jean-Baptiste ?",
         correct: "Zacharie",
         options: ["Zacharie", "Simeon", "Eli", "Gamaliel"],
-        difficulty: 3
+        difficulty: 3,
+        testament: "new"
     },
     {
         prompt: "Quel disciple etait surnomme le jumeau ?",
         correct: "Thomas",
         options: ["Thomas", "Philippe", "Andre", "Matthieu"],
-        difficulty: 3
+        difficulty: 3,
+        testament: "new"
     },
     {
         prompt: "Qui succeda a Elie dans le ministere prophetique ?",
         correct: "Elisee",
-        options: ["Elisee", "Esaie", "Jeremie", "Osée"],
-        difficulty: 4
+        options: ["Elisee", "Esaie", "Jeremie", "Osee"],
+        difficulty: 4,
+        testament: "old"
     },
     {
         prompt: "Dans quel livre trouve-t-on principalement la sagesse de Salomon ?",
         correct: "Proverbes",
-        options: ["Proverbes", "Exode", "Nehemie", "Aggée"],
-        difficulty: 4
+        options: ["Proverbes", "Exode", "Nehemie", "Aggee"],
+        difficulty: 4,
+        testament: "old"
     }
 ];
 
@@ -82,43 +86,50 @@ const TERM_MEANING_QUESTIONS = [
         prompt: "Que signifie l'expression Ichabod ?",
         correct: "La gloire s'est retiree",
         options: ["La gloire s'est retiree", "L'Eternel pourvoira", "Dieu est ma lumiere", "Paix soit sur toi"],
-        difficulty: 2
+        difficulty: 2,
+        testament: "old"
     },
     {
         prompt: "Que signifie Jehovah Jireh ?",
         correct: "L'Eternel pourvoira",
         options: ["L'Eternel pourvoira", "L'Eternel est paix", "L'Eternel guerit", "L'Eternel est ma banniere"],
-        difficulty: 2
+        difficulty: 2,
+        testament: "old"
     },
     {
         prompt: "Que signifie Emmanuel ?",
         correct: "Dieu avec nous",
         options: ["Dieu avec nous", "Dieu est juge", "Dieu console", "Dieu se souvient"],
-        difficulty: 1
+        difficulty: 1,
+        testament: "all"
     },
     {
         prompt: "Que signifie Ebenezer dans le contexte biblique ?",
         correct: "Pierre de secours",
         options: ["Pierre de secours", "Maison de paix", "Porte de grace", "Temple de louange"],
-        difficulty: 3
+        difficulty: 3,
+        testament: "old"
     },
     {
         prompt: "Que signifie Bethel ?",
         correct: "Maison de Dieu",
         options: ["Maison de Dieu", "Montagne sainte", "Ville du roi", "Source de vie"],
-        difficulty: 2
+        difficulty: 2,
+        testament: "old"
     },
     {
         prompt: "Que signifie Golgotha ?",
         correct: "Lieu du crane",
         options: ["Lieu du crane", "Lieu du sacrifice", "Lieu de la resurrection", "Lieu des prophetes"],
-        difficulty: 3
+        difficulty: 3,
+        testament: "new"
     },
     {
         prompt: "Que signifie Maranatha ?",
         correct: "Notre Seigneur vient",
         options: ["Notre Seigneur vient", "Dieu est amour", "Louange au Roi", "Esprit de verite"],
-        difficulty: 4
+        difficulty: 4,
+        testament: "new"
     }
 ];
 
@@ -142,7 +153,8 @@ const state = {
     audioContext: null,
     generiquePlaying: false,
     generiqueTimers: [],
-    backgroundMusicTimer: null
+    backgroundMusicTimer: null,
+    askedQuestionSignaturesByDifficulty: {}
 };
 
 const testamentSelect = document.getElementById("testament-select");
@@ -213,8 +225,41 @@ function estNouveauTestament(verse) {
     return verse.book >= 40;
 }
 
+function matchSelectedTestament(itemTestament) {
+    const selected = testamentSelect.value;
+    if (selected === "all") {
+        return true;
+    }
+
+    if (itemTestament === "all") {
+        return true;
+    }
+
+    return itemTestament === selected;
+}
+
 function formatPoints(value) {
     return `${value} pts`;
+}
+
+function getDifficultyQuestionHistory(difficulty) {
+    if (!state.askedQuestionSignaturesByDifficulty[difficulty]) {
+        state.askedQuestionSignaturesByDifficulty[difficulty] = new Set();
+    }
+    return state.askedQuestionSignaturesByDifficulty[difficulty];
+}
+
+function buildQuestionSignature(question) {
+    const prompt = normaliserTexte(question?.prompt || "");
+    const hint = normaliserTexte(question?.verseHint || "");
+    const options = Array.isArray(question?.options)
+        ? question.options.map((opt) => normaliserTexte(opt)).sort().join("|")
+        : "";
+    const correct = Number.isInteger(question?.correctIndex)
+        ? normaliserTexte(question.options[question.correctIndex] || "")
+        : "";
+
+    return `${prompt}::${hint}::${options}::${correct}`;
 }
 
 function difficultyLevel() {
@@ -786,7 +831,7 @@ function buildReferenceQuestion() {
 }
 
 function buildCharacterRoleQuestion() {
-    const candidates = CHARACTER_FACTS.filter((item) => item.difficulty <= difficultyLevel());
+    const candidates = CHARACTER_FACTS.filter((item) => item.difficulty <= difficultyLevel() && matchSelectedTestament(item.testament));
     const selected = pickRandom(candidates);
     if (!selected || candidates.length < 4) {
         return null;
@@ -804,7 +849,7 @@ function buildCharacterRoleQuestion() {
 }
 
 function buildCharacterIdentityQuestion() {
-    const candidates = CHARACTER_FACTS.filter((item) => item.difficulty <= difficultyLevel());
+    const candidates = CHARACTER_FACTS.filter((item) => item.difficulty <= difficultyLevel() && matchSelectedTestament(item.testament));
     const selected = pickRandom(candidates);
     if (!selected || candidates.length < 4) {
         return null;
@@ -822,7 +867,7 @@ function buildCharacterIdentityQuestion() {
 }
 
 function buildEventQuestion() {
-    const candidates = EVENT_FACTS.filter((item) => item.difficulty <= difficultyLevel());
+    const candidates = EVENT_FACTS.filter((item) => item.difficulty <= difficultyLevel() && matchSelectedTestament(item.testament));
     const selected = pickRandom(candidates);
     if (!selected || candidates.length < 4) {
         return null;
@@ -852,7 +897,7 @@ function buildEventQuestion() {
 }
 
 function buildRelationQuestion(minDifficulty = 1) {
-    const candidates = RELATION_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= minDifficulty);
+    const candidates = RELATION_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= minDifficulty && matchSelectedTestament(item.testament));
     const selected = pickRandom(candidates);
     if (!selected) {
         return null;
@@ -869,7 +914,7 @@ function buildRelationQuestion(minDifficulty = 1) {
 }
 
 function buildExpressionMeaningQuestion(minDifficulty = 1) {
-    const candidates = TERM_MEANING_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= minDifficulty);
+    const candidates = TERM_MEANING_QUESTIONS.filter((item) => item.difficulty <= difficultyLevel() && item.difficulty >= minDifficulty && matchSelectedTestament(item.testament));
     const selected = pickRandom(candidates);
     if (!selected) {
         return null;
@@ -926,20 +971,36 @@ function buildLocalQuestion() {
 
     const generators = generatorsByDifficulty[state.difficulty] || generatorsByDifficulty.easy;
 
-    for (let attempt = 0; attempt < 10; attempt += 1) {
+    const history = getDifficultyQuestionHistory(state.difficulty);
+
+    for (let attempt = 0; attempt < 80; attempt += 1) {
         const generator = pickRandom(generators);
         const question = generator ? generator() : null;
         if (question) {
+            const signature = buildQuestionSignature(question);
+            if (history.has(signature)) {
+                continue;
+            }
+
+            history.add(signature);
             return question;
         }
     }
 
-    return {
+    const fallbackQuestion = {
         prompt: "Quel est le premier livre de la Bible ?",
         verseHint: "Question de secours.",
         options: ["Genese", "Exode", "Matthieu", "Psaumes"],
         correctIndex: 0
     };
+
+    const fallbackSignature = buildQuestionSignature(fallbackQuestion);
+    if (!history.has(fallbackSignature)) {
+        history.add(fallbackSignature);
+        return fallbackQuestion;
+    }
+
+    return null;
 }
 
 async function buildQuestion() {
@@ -984,6 +1045,14 @@ function updateStatusMessage(message) {
 async function showQuestion() {
     clearAnswerStyles();
     state.currentQuestion = await buildQuestion();
+
+    if (!state.currentQuestion) {
+        endGame("Banque de questions epuisee pour ce niveau.", state.score);
+        questionText.innerText = "Questions epuisees";
+        verseHint.innerText = "Toutes les questions uniques de ce niveau ont deja ete posees.";
+        showNewGameOverlay(state.score);
+        return;
+    }
 
     const difficultyLabel = DIFFICULTY_CONFIG[state.difficulty].label;
     roundLabel.innerText = `Question ${state.currentIndex + 1} - Niveau ${difficultyLabel} - Progression ${formatPoints(state.score)}/${formatPoints(WIN_SCORE)} - Serie ${state.streak}/${SERIE_TARGET}`;
@@ -1067,6 +1136,7 @@ function lockAnswer(index) {
                 const oldLabel = DIFFICULTY_CONFIG[state.difficulty].label;
                 const nextLabel = DIFFICULTY_CONFIG[nextDifficulty].label;
                 state.difficulty = nextDifficulty;
+                state.askedQuestionSignaturesByDifficulty[nextDifficulty] = new Set();
                 state.score = 0;
                 state.streak = 0;
                 state.currentIndex = -1;
@@ -1181,6 +1251,12 @@ async function startGame() {
     state.score = 0;
     state.streak = 0;
     state.difficulty = "easy";
+    state.askedQuestionSignaturesByDifficulty = {
+        easy: new Set(),
+        medium: new Set(),
+        hard: new Set(),
+        "very-hard": new Set()
+    };
     state.targetQuestions = 0;
     state.lifelines = { fifty: true, phone: true, audience: true };
 
