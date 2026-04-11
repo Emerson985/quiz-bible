@@ -1,5 +1,7 @@
 const SERIE_TARGET = 5;
-const POINTS_PER_SERIE = 10;
+const POINTS_PER_SERIE = 100;
+const WIN_SCORE = 1000;
+const TOTAL_QUESTIONS = 50;
 const AI_STORAGE_KEY = "quiz-bible-ai-config";
 const AI_REQUEST_TIMEOUT_MS = 9000;
 
@@ -171,6 +173,10 @@ const gainWinAmount = document.getElementById("gain-win-amount");
 const newGameOverlay = document.getElementById("new-game-overlay");
 const ngFallbackAmount = document.getElementById("ng-fallback-amount");
 const ngRestartBtn = document.getElementById("ng-restart-btn");
+const celebrationOverlay = document.getElementById("celebration-overlay");
+const celebrationAmount = document.getElementById("celebration-amount");
+const celebrationRestartBtn = document.getElementById("celebration-restart-btn");
+const confettiContainer = document.getElementById("confetti-container");
 
 let gainBannerTimer = null;
 let newGameOverlayTimer = null;
@@ -414,8 +420,49 @@ function showNewGameOverlay(score) {
     newGameOverlay.classList.add("visible");
 }
 
+function hideCelebrationOverlay() {
+    celebrationOverlay.classList.remove("visible");
+    if (confettiContainer) {
+        confettiContainer.innerHTML = "";
+    }
+}
+
+function launchConfettiBurst() {
+    if (!confettiContainer) {
+        return;
+    }
+
+    const colors = ["#ffd166", "#ef476f", "#06d6a0", "#118ab2", "#f4a261", "#ffffff"];
+    confettiContainer.innerHTML = "";
+
+    for (let i = 0; i < 120; i += 1) {
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.width = `${6 + Math.random() * 7}px`;
+        piece.style.height = `${10 + Math.random() * 9}px`;
+        piece.style.animationDuration = `${1500 + Math.random() * 1700}ms`;
+        piece.style.animationDelay = `${Math.random() * 500}ms`;
+        piece.style.setProperty("--drift-x", `${-140 + Math.random() * 280}px`);
+        piece.style.setProperty("--rot", `${220 + Math.random() * 760}deg`);
+        confettiContainer.appendChild(piece);
+    }
+}
+
+function showCelebrationOverlay(score) {
+    celebrationAmount.innerText = formatPoints(score);
+    celebrationOverlay.classList.add("visible");
+    launchConfettiBurst();
+}
+
 ngRestartBtn.addEventListener("click", () => {
     newGameOverlay.classList.remove("visible");
+    startGame();
+});
+
+celebrationRestartBtn.addEventListener("click", () => {
+    hideCelebrationOverlay();
     startGame();
 });
 
@@ -659,7 +706,7 @@ function lancerGenerique() {
 
     state.generiqueTimers.push(setTimeout(() => {
         generiqueLine.innerText = "Enchaine des bonnes reponses";
-        generiqueSubline.innerText = "5 bonnes d'affilee = 10 points";
+        generiqueSubline.innerText = "5 bonnes d'affilee = 100 points";
     }, 3600));
 
     state.generiqueTimers.push(setTimeout(() => {
@@ -949,10 +996,18 @@ function endGame(message, finalScore, showHostMessage = true) {
 async function moveNextQuestion() {
     state.currentIndex += 1;
     if (state.currentIndex >= state.targetQuestions) {
-        playTone("win");
-        endGame(`Excellent parcours ! Tu termines avec ${formatPoints(state.score)}.`, state.score);
-        questionText.innerText = "Niveau termine !";
-        verseHint.innerText = "Tu peux recommencer avec un niveau plus eleve.";
+        if (state.score >= WIN_SCORE) {
+            playTone("win");
+            endGame(`Felicitations ! Tu as atteint ${formatPoints(WIN_SCORE)}.`, WIN_SCORE);
+            questionText.innerText = "FELICITATIONS !";
+            verseHint.innerText = "Tu as atteint le score maximum.";
+            showCelebrationOverlay(WIN_SCORE);
+            return;
+        }
+
+        endGame(`Partie terminee. Score final: ${formatPoints(state.score)}.`, state.score);
+        questionText.innerText = "Partie terminee";
+        verseHint.innerText = `Objectif non atteint. Il fallait ${formatPoints(WIN_SCORE)} pour gagner.`;
         showNewGameOverlay(state.score);
         return;
     }
@@ -985,6 +1040,9 @@ function lockAnswer(index) {
             if (state.streak % SERIE_TARGET === 0) {
                 gainedPoints = POINTS_PER_SERIE;
                 state.score += gainedPoints;
+                if (state.score > WIN_SCORE) {
+                    state.score = WIN_SCORE;
+                }
                 showGainBanner("Serie validee !", `+${formatPoints(gainedPoints)}`);
             } else {
                 showGainBanner("Bonne reponse !", `Serie ${state.streak}/${SERIE_TARGET}`);
@@ -992,6 +1050,15 @@ function lockAnswer(index) {
 
             renderScore();
             updateStatusMessage(`Bonne reponse. Serie actuelle: ${state.streak}/${SERIE_TARGET}. Score: ${formatPoints(state.score)}.`);
+
+            if (state.score >= WIN_SCORE) {
+                endGame(`Felicitations ! Tu as atteint ${formatPoints(WIN_SCORE)}.`, WIN_SCORE);
+                questionText.innerText = "FELICITATIONS !";
+                verseHint.innerText = "Tu as atteint le score maximum.";
+                playTone("win");
+                showCelebrationOverlay(WIN_SCORE);
+                return;
+            }
 
             setTimeout(async () => {
                 await moveNextQuestion();
@@ -1094,12 +1161,13 @@ async function startGame() {
     state.score = 0;
     state.streak = 0;
     state.difficulty = "easy";
-    state.targetQuestions = DIFFICULTY_CONFIG["very-hard"].totalQuestions;
+    state.targetQuestions = TOTAL_QUESTIONS;
     state.lifelines = { fifty: true, phone: true, audience: true };
 
     hideGameOverBanner();
     gainWinBanner.classList.remove("visible");
     newGameOverlay.classList.remove("visible");
+    hideCelebrationOverlay();
     if (newGameOverlayTimer) {
         clearTimeout(newGameOverlayTimer);
         newGameOverlayTimer = null;

@@ -82,6 +82,86 @@ body {
     pointer-events: all;
 }
 
+.celebration-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 20%, rgba(255, 228, 147, 0.22), rgba(2, 6, 20, 0.88));
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.celebration-overlay.visible {
+    display: flex;
+    pointer-events: all;
+}
+
+.celebration-card {
+    position: relative;
+    width: min(560px, 92vw);
+    background: linear-gradient(155deg, rgba(34, 55, 106, 0.98), rgba(19, 34, 75, 0.98));
+    border: 2px solid rgba(255, 208, 115, 0.75);
+    border-radius: 20px;
+    box-shadow: 0 0 70px rgba(255, 196, 86, 0.26), 0 20px 44px rgba(0, 0, 0, 0.55);
+    text-align: center;
+    padding: 32px 24px 26px;
+    overflow: hidden;
+}
+
+.celebration-title {
+    margin: 0;
+    font-family: 'Merriweather', serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    color: #ffe18f;
+    letter-spacing: 0.07em;
+    text-shadow: 0 0 22px rgba(255, 216, 127, 0.45);
+}
+
+.celebration-subtitle {
+    margin: 10px 0 6px;
+    color: #d6e6ff;
+    font-size: 1.05rem;
+}
+
+.celebration-amount {
+    margin: 0 0 16px;
+    font-family: 'Merriweather', serif;
+    font-size: 2.1rem;
+    font-weight: 900;
+    color: #ffd064;
+    text-shadow: 0 0 16px rgba(255, 208, 100, 0.45);
+}
+
+.confetti-container {
+    position: absolute;
+    inset: -12px;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -14px;
+    width: 10px;
+    height: 16px;
+    opacity: 0.95;
+    animation: confettiFall 2200ms linear forwards;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate3d(var(--drift-x, 0px), calc(100vh + 40px), 0) rotate(var(--rot, 420deg));
+        opacity: 0.98;
+    }
+}
+
 .new-game-card {
     background: linear-gradient(145deg, rgba(14, 22, 58, 0.97), rgba(22, 10, 40, 0.97));
     border: 2px solid rgba(190, 44, 36, 0.7);
