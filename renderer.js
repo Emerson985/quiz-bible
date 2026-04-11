@@ -285,9 +285,8 @@ function saveAIConfig() {
 }
 
 function updateAIControls() {
-    const hasKey = Boolean(state.aiConfig.apiKey);
     if (onlineAIToggle) {
-        onlineAIToggle.checked = Boolean(state.aiConfig.enabled && hasKey);
+        onlineAIToggle.checked = Boolean(state.aiConfig.enabled);
         onlineAIToggle.disabled = false;
     }
 }
@@ -1169,7 +1168,7 @@ function configureOnlineAI() {
         endpoint: endpointInput.trim() || DEFAULT_AI_CONFIG.endpoint,
         model: modelInput.trim() || DEFAULT_AI_CONFIG.model,
         apiKey: nextApiKey,
-        enabled: Boolean(nextApiKey)
+        enabled: current.enabled
     };
 
     saveAIConfig();
@@ -1200,15 +1199,7 @@ function registerEvents() {
     configureAIButton.addEventListener("click", configureOnlineAI);
 
     onlineAIToggle.addEventListener("change", () => {
-        const hasKey = Boolean(state.aiConfig.apiKey);
-        if (!hasKey && onlineAIToggle.checked) {
-            onlineAIToggle.checked = false;
-            // Ouvrir automatiquement le dialog de configuration
-            configureOnlineAI();
-            return;
-        }
-
-        state.aiConfig.enabled = Boolean(onlineAIToggle.checked && hasKey);
+        state.aiConfig.enabled = onlineAIToggle.checked;
         saveAIConfig();
         if (state.aiConfig.enabled) {
             updateStatusMessage("IA en ligne active. En cas d'echec API, le moteur local prend le relais.");
